@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta content="text/html">
+		<title>图片版</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<link rel="stylesheet" href="https://www.layuicdn.com/layui/css/layui.css">
+		<link rel="stylesheet" href="../layout/css/layout.css">
+		<style>
+			#canvas,
+			#img,
+			#textarea,
+			.layout-header{
+				display: none;
+			}
+			.layui-btn {
+				margin: auto;
+				display: block;
+				width: 200px;
+				height: 100px;
+				line-height: 50px;
+				margin-top: 50px;
+				font-size: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="layout-wrap">
+			<div class="layout-header layui-row">
+				<div class="layui-form-item">
+					<label class="layui-form-label">上传</label>
+					<div class="layui-input-inline">
+					</div>
+					<div class="layui-input-inline">
+					</div>
+				</div>
+			</div>
+			<div class="layout-content">
+				<div class="layout-content-body layout-show">
+					<textarea id="textarea"></textarea>
+					<canvas id="canvas" width="100" height="100"></canvas><!-- 画布 -->
+					<div class="layout-content-center" id="content">
+						<button type="button" class="layui-btn layui-btn-sm" id="upload">上传图片</button>
+						<button type="button" class="layui-btn layui-btn-sm" id="download">导出文件</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<img src="" id="img" />
+	</body>
+	<script src="../layout/js/jquery-3.2.1.js"></script>
+	<script src="../layout/js/layout.js"></script>
+	<script src="https://www.layuicdn.com/layer/layer.js"></script>
+	<script>
+		$(document).ready(function() {
+			layout.sfile({
+				bt: "#upload",
+				type: "img",
+				success: function(data) {
+					layer.msg('正在生成', {
+						icon: 16,
+						shade: 0.3,
+						time: false
+					});
+					$("#img").attr("src", data);
+					$("#img")[0].onload = function() {
+						var width = $("#img").width(); //图片宽度
+						var height = $("#img").height(); //图片高度
+						var zoom = $("[name=zoom]").val(); //放大比例
+						var src = $("#img").attr("src"); //源图片
+						canvas(width, height, src);
+					};
+				}
+			});
+			$("#download").click(function() {
+				var code = $("#textarea").val();
+				code = code.slice(0, code.length - 1);
+				var content =
+					'<body> <div id="startdiv"></div><style> #startdiv { width: ' + 306 +
+                    'px; height: 3000' +
+                    'px; }  #bqndfheak { width: 306px; height: 136px; } #bqndfheak:after { content: ""; display: block; width: 1px; height: 1px; border-radius:1px; position:absolute; top:0px; background: transparent; -webkit-appearance: none; -webkit-box-shadow: ' +
+					code + '} </style> </p> <div id="bqndfheak"></div> </body>';
+				layout.dfile({
+					content: content, //内容
+					name: "index.html"
+				}); //下载文件
+			});
+		}); //jquery
+	</script>
+	<script>
+		function canvas(width, height, src) {
+			var canvas = $("#canvas")[0]; //定义画布元素
+			canvas.width = width; //设置画布宽度=图片宽度
+			canvas.height = height; //设置画布高度=图片高度
+			var ctx = canvas.getContext("2d"); //创建环境
+			var img = new Image(); //创建新的图片
+			var px_w = Number($("[name=width]").val()); //像素宽
+			var px_h = Number($("[name=height]").val()); //像素高
+			img.setAttribute('crossOrigin', 'anonymous'); //允许跨域
+			img.src = src; //设置图片源文件
+			img.onload = function() {
+				ctx.drawImage(img, 0, 0); //加载图片到画布
+				var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); //获取画布信息
+				/* 遍历宽 */
+				for (var x = 0; x < width; x=x+2) {
+					(function(x) {
+						setTimeout(function() {
+							top(x, height, imageData, width);
+						}, (x + 1) * height);
+					})(x);
+				}
+			};
+			/* 遍历高*/
+			function top(x, height, imageData, width) {
+				for (var y = 0; y < height; y=y+2) {
+					(function(y) {
+						setTimeout(function() {
+                     
+							var color = getPxColor(imageData, x, y);
+							if (color != false) {
+								var text = $("#textarea").val();
+								var str = text + x/2 + "px " + y/2 + "px " + hex(color) + ",";
+								$("#textarea").val(str);
+							}
+							if (x >= width - 2 && y >= height - 2) {
+								layer.closeAll();
+								alert('生成成功');
+							}
+						}, (y + 1) * 1);
+					})(y);
+				}
+			}
+			/* 获取像素信息 */
+			function getPxColor(imageData, x, y) {
+				var width = imageData.width;
+				
+                var r = imageData.data[(y * width + x) * 4];
+                var g = imageData.data[(y * width + x) * 4 + 1];
+                var b = imageData.data[(y * width + x) * 4 + 2];
+				
+				if (r == 255 && g == 255 & b == 255) {
+					return false;
+				}
+				return "rgb(" + r + "," + g + "," + b + ")";
+			}
+
+			function hex(color) {
+				var rgb = color.split(',');
+				var r = parseInt(rgb[0].split('(')[1]);
+				var g = parseInt(rgb[1]);
+				var b = parseInt(rgb[2].split(')')[0]);
+				var hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+				return hex;
+			}
+		}
+	</script>

@@ -1,0 +1,57 @@
+desc "Download all of the baseline files from pubmed"
+#this file downloads 50 pubmed file then calls the scrapper to add to the db then deletes the files
+task :pubmed_files do | |
+
+	require "zlib"
+	require 'open-uri'
+	
+	print "Started seeding the database \n"
+	n = 0
+
+	for i in 1063..1214 do
+
+		n += 1
+		# creating url from which to download a file
+		archiveURL = 'ftp://ftp.ncbi.nlm.nih.gov/pubmed/updatefiles/'
+		fileNumber = ''
+
+		if i < 10
+			fileNumber = '000' + i.to_s
+		elsif i < 100
+			fileNumber = '00' + i.to_s
+		elsif i < 1000
+			fileNumber = '0' + i.to_s
+		elsif i < 10000
+			fileNumber = i.to_s
+		end
+
+		filename = 'pubmed21n' + fileNumber + '.xml'
+
+		finalUrl = archiveURL + filename + '.gz'
+		
+		# downloading a file
+		download = open(finalUrl)
+		IO.copy_stream( download,  ('./zip/' + filename + '.gz'))
+
+		puts "extracting a file #{filename} \n"
+		# extracting a file
+		Zlib::GzipReader.open(('zip/' + filename + '.gz')) do | input_stream |
+			File.open('zip/' + filename, "w") do |output_stream|
+				IO.copy_stream(input_stream, output_stream)
+			end
+		end
+
+		ENV['PUBMED_ARCHIVE'] = './zip/' + filename
+		ENV['filenumber'] = i
+		# envokes seeding file
+		ruby "pubmed.rb"
+
+		puts "Finished with #{filename}, deleting the files \n"
+		File.delete('zip/' + filename + '.gz') if File.exists?('zip/' + filename + '.gz')
+		File.delete('zip/' + filename) if File.exists?('zip/' + filename)
+
+		puts "moving to file number #{i}\n"
+	end
+
+	puts "Finished seeding the database, total number of Articles:#{n+1} \n"
+end

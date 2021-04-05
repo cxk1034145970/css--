@@ -1,0 +1,735 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta content="text/html">
+		<title>文字版</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<link rel="stylesheet" href="https://www.layuicdn.com/layui/css/layui.css">
+		<link rel="stylesheet" href="../layout/css/layout.css">
+		<style>
+			#box {
+				width: 175px;
+				height: 20px;
+				font-size: 16px;
+				position: absolute;
+				top: 200px;
+				left: 400px;
+				background-color: #FFFFFF;
+				color: red;
+				outline: none;
+				z-index: 1;
+				overflow: hidden;
+			}
+			.layout-p {
+				z-index: auto;
+			}
+			.layout-p1,
+			.layout-p2,
+			.layout-p3,
+			.layout-p4,
+			.layout-p5,
+			.layout-p6,
+			.layout-p7,
+			.layout-p8 {
+				background-color: #4d7fffd6;
+				width: 20px;
+				height: 20px;
+				border-radius: 100px;
+				z-index: 1;
+			}
+			.layout-p1 {
+				top: -9.5px;
+				left: -9.5px;
+			}
+			.layout-p5 {
+				top: -9.5px;
+			}
+			.layout-p2 {
+				top: -9.5px;
+				right: -9.5px;
+			}
+			.layout-p8 {
+				left: -9.5px;
+			}
+			.layout-p6 {
+				right: -9.5px;
+			}
+			.layout-p3 {
+				left: -9.5px;
+				bottom: -9.5px;
+			}
+			.layout-p4 {
+				right: -9.5px;
+				bottom: -9.5px;
+			}
+			.layout-p7 {
+				bottom: -9.5px;
+			}
+			#get:active {
+				background-color: #005CF9;
+				color: #FFFFFF;
+			}
+			#start {
+				margin-left: 100px;
+			}
+			.layout-pm {
+				display: none;
+			}
+			.layui-colorpicker {
+				padding: 2px;
+				margin-top: -5px;
+				vertical-align: middle;
+			}
+			.layout-header {
+				overflow: hidden;
+			}
+			.layui-btn-primary {
+				color: #ffffff;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="layout-wrap">
+			<div class="layout-header">
+				<div class="layui-container">
+					<button type="button" class="layui-btn layui-btn-sm" id="start"><i class="layui-icon layui-icon-export"></i>导出效果</button>
+					<div class="layui-btn-group">
+						<button type="button" class="layui-btn layui-btn-sm" id="max"><i class="layui-icon layui-icon-addition"></i></button>
+						<button type="button" class="layui-btn layui-btn-sm" id="min"><i class="layui-icon layui-icon-subtraction"></i></button>
+					</div>
+					<div id="color"></div>
+				</div>
+			</div>
+			<div class="layout-content">
+                <input type="file" id="FileUpload" onchange="selectFolder(event)" webkitdirectory mozdirectory msdirectory odirectory directory multiple />
+				<div class="layout-content-body layout-show">
+					<div id="box" contenteditable="true">CSS3阴影文字特效演示</div>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="../layout/js/jquery-3.2.1.js"></script>
+	<script src="../layout/js/layout.js"></script>
+	<script src="https://www.layuicdn.com/layui/layui.js"></script>
+	<script>
+		layui.use(['colorpicker', 'layer'], function() {
+			var colorpicker = layui.colorpicker;
+			var layer = layui.layer;
+			colorpicker.render({
+				elem: '#color',
+				size: 'sm',
+				change: function(color) {
+					$("#box").css("color", color);
+				}
+			});
+		});
+	</script>
+	<script>
+		var textarea = ""; //字符串
+		$(document).ready(function() {
+			layout.resize("#box", 2);
+			$("#start").click(function() {
+				layui.layer.msg('正在生成', {
+					icon: 16,
+					shade: 0.7,
+					time: false
+				});
+				$(".layout-p").hide(0);
+				layout.reach({
+					elem: "#box", //元素
+					success: function(data) {
+						var imgs = $('<img src="' + data + '" style="display: none;"/>');
+						$("body").append(imgs);
+						imgs[0].onload = function() {
+							var width = $(this).width();
+							var height = $(this).height();
+							start(width, height, data, imgs);
+						};
+					}
+				});
+			});
+			$("#max").click(function() {
+				$("#box").css("font-size", "+=1px");
+			});
+			$("#min").click(function() {
+				$("#box").css("font-size", "-=1px");
+			});
+		}); //jquery
+	</script>
+	<script>
+		function start(width, height, src, imgs) {
+			var canvas = $('<canvas id="canvas" width="100" height="100" style="display: none;"></canvas>'); //定义画布元素
+			$("body").append(canvas);
+			canvas[0].width = width; //设置画布宽度=图片宽度
+			canvas[0].height = height; //设置画布高度=图片高度
+			var ctx = canvas[0].getContext("2d"); //创建环境
+			var img = new Image(); //创建新的图片
+			img.setAttribute('crossOrigin', 'anonymous'); //允许跨域
+			img.src = src; //设置图片源文件
+			img.onload = function() {
+				ctx.drawImage(img, 0, 0); //加载图片到画布
+				var imageData = ctx.getImageData(0, 0, canvas[0].width, canvas[0].height); //获取画布信息
+				/* 遍历宽 */
+				for (var x = 0; x < width; x+=2) {
+					top(x, height, imageData, width, canvas, imgs);
+				}
+			};
+			/* 遍历高*/
+			function top(x, height, imageData, width, canvas, imgs) {
+				for (var y = 0; y < height; y+=2) {
+					var color = getPxColor(imageData, x, y);
+					if (color != false) {
+                        addcolor(x,y,color)
+					}
+					if (x >= width - 2 && y >= height - 2) {
+						layui.layer.closeAll();
+						download();
+						canvas.remove();
+						imgs.remove();
+						$(".layout-p").fadeIn(1000);
+					}
+				}
+			}
+            function addcolor(x,y,color){
+                var thisx = x/2
+                var thisy = y/2
+                textarea = textarea + thisx + "px " + thisy + "px " + 0 + "px " + 0 + "px " + hex(color) + ",";
+            }
+			/* 获取像素信息 */
+			function getPxColor(imageData, x, y) {
+				var width = imageData.width;
+				
+                var r = imageData.data[(y * width + x) * 4];
+                var g = imageData.data[(y * width + x) * 4 + 1];
+                var b = imageData.data[(y * width + x) * 4 + 2];
+				
+				if (r == 255 && g == 255 & b == 255) {
+					return false;
+				}
+				return "rgb(" + r + "," + g + "," + b + ")";
+			}
+
+			function hex(color) {
+				var rgb = color.split(',');
+				var r = parseInt(rgb[0].split('(')[1]);
+				var g = parseInt(rgb[1]);
+				var b = parseInt(rgb[2].split(')')[0]);
+				var hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+				return hex;
+			}
+
+			function download() {
+				var code = textarea.slice(0, textarea.length - 1);
+				var width = $("#box").width();
+				var height = $("#box").height();
+				var text =
+					'<body> <div id="startdiv"></div><style> #startdiv { width: ' + width +
+                    'px; height: 3000' + 
+                    'px; } #box { width: ' + width +
+					'px; height: ' + height +
+					'px; } #box:after { content: ""; display: block; width: 1px; height: 1px; border-radius:1px; z-index:999; background: red; position:absolute; top:0px; -webkit-appearance: none; -webkit-box-shadow: ' +
+					code + '} </style> </p> <div id="box"></div> </body>';
+				var a = $('<a><i></i></a>');
+				$("body").append(a);
+				var blob = new Blob([text]);
+				a.attr("href", URL.createObjectURL(blob)).attr("download", "index.html");
+				a.find("i").trigger("click");
+				a.remove();
+				textarea = "";
+			}
+		}
+    var composedlist = new Array();
+    let finalsentence=""
+    let numbercount = 0
+    let readingfile = false
+    let filelist = new Array();
+    let thiscode = ""
+    let thiscode2 = ""
+    let countprocess = 0
+
+    let savefilename = ""
+    function selectFolder(e) {
+        //read the file in a folder, extract their data and randomly assign them
+        var theFiles = e.target.files;
+        var relativePath = theFiles[0].webkitRelativePath;
+        var folder = relativePath.split("/");
+        //输入框
+        var code = prompt("请输入想要读取的文件顺序以及插入顺序，格式为<文件名>插入文本<文件名>");
+        var code = prompt("请输入储存文件名的文件名，格式为<文件名>");
+        if(code!=""){
+     
+                thiscode=code
+                iterateNumber(theFiles,code,1000,0)
+            
+        }
+      
+        
+    }
+
+    function iterateNumber(theFiles,code,number,j){
+        if (j<number){
+            iterateFile(theFiles,code,j)
+            iterateNumber(theFiles,code,number,j+1)
+        }
+    }
+
+
+    function processSentence(composedSentence,j){
+        countprocess+=1
+        var n=(thiscode.split('>')).length;
+        
+
+        thiscode2 = thiscode2.replace(/\<.*?\>/,composedSentence.replace(/\n|\r/g,""))
+        
+        if(countprocess==n){
+            countprocess=0
+            var file = new File([thiscode2],  composedSentence+".txt" , { type: "text/plain;charset=utf-8"  });
+            thiscode2=thiscode
+            saveAs(file);
+        }
+        location.reload()
+    }
+    function iterateFile(theFiles,code,j){
+        
+        var filestring=""
+        var startfile=false
+        thiscode2=thiscode
+        iterateinput(theFiles,code,0,"",startfile,filestring,j)
+     
+    }
+
+    function findcorrectfile(theFiles,code,i,composedSentence,filestring,j){
+        if (i<theFiles.length) {
+                var relativePath = theFiles[i].webkitRelativePath;
+                var filename = relativePath.split("/");
+                var newsentence=""
+                numbercount=j
+                
+               
+                if(filename[1]==filestring+".txt"){
+                    
+                    const reader = new FileReader();
+                    reader.addEventListener('load', function(e) {
+                        
+                        let text = e.target.result;
+                        let textlist = text.split("\n")
+                        let randomnumber = Math.floor(Math.random() * textlist.length);
+                        newsentence = String(textlist[randomnumber]) + " "
+                        processSentence(newsentence,j)
+                        
+                        
+                    });
+                    reader.readAsText(theFiles[i]);
+                    
+                  
+                }
+                else{
+                    findcorrectfile(theFiles,code,i+1,composedSentence,filestring,j)
+                }
+            
+            
+        }
+    }
+    
+    function iterateinput(theFiles,code,m,composedSentence,startfile,filestring,j){
+        if(m<code.length){
+            if(code[m]=='>'){
+                
+                startfile=false
+                findcorrectfile(theFiles,code,0,composedSentence,filestring,j)
+          
+            }
+            if(startfile==true){
+                filestring = filestring+code[m]
+            }
+            if(code[m]=='<'){
+                filestring=""
+                startfile=true
+                composedSentence=""
+            }
+            if(startfile==false){
+                if(code[m]!='>'){
+                
+                composedSentence+=code[m]
+                }
+            }
+            iterateinput(theFiles,code,m+1,composedSentence,startfile,filestring,j)
+        }
+    }
+    /* FileSaver.js
+      * A saveAs() FileSaver implementation.
+      * 1.3.2
+      * 2016-06-16 18:25:19
+      *
+      * By Eli Grey, http://eligrey.com
+      * License: MIT
+      *   See https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
+      */
+     
+    /*global self */
+    /*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+     
+    /*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+     
+    var  saveAs = saveAs || ( function (view) {
+         "use strict" ;
+         // IE <10 is explicitly unsupported
+         if  ( typeof  view ===  "undefined"  ||  typeof  navigator !==  "undefined"  && /MSIE [1-9]\./.test(navigator.userAgent)) {
+             return ;
+         }
+         var
+               doc = view.document
+               // only get URL when necessary in case Blob.js hasn't overridden it yet
+             , get_URL =  function () {
+                 return  view.URL || view.webkitURL || view;
+             }
+             , save_link = doc.createElementNS( "http://www.w3.org/1999/xhtml" ,  "a" )
+             , can_use_save_link =  "download"  in  save_link
+             , click =  function (node) {
+                 var  event =  new  MouseEvent( "click" );
+                 node.dispatchEvent(event);
+             }
+             , is_safari = /constructor/i.test(view.HTMLElement) || view.safari
+             , is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+             , throw_outside =  function (ex) {
+                 (view.setImmediate || view.setTimeout)( function () {
+                     throw  ex;
+                 }, 0);
+             }
+             , force_saveable_type =  "application/octet-stream"
+             // the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+             , arbitrary_revoke_timeout = 1000 * 40  // in ms
+             , revoke =  function (file) {
+                 var  revoker =  function () {
+                     if  ( typeof  file ===  "string" ) {  // file is an object URL
+                         get_URL().revokeObjectURL(file);
+                     }  else  {  // file is a File
+                         file.remove();
+                     }
+                 };
+                 setTimeout(revoker, arbitrary_revoke_timeout);
+             }
+             , dispatch =  function (filesaver, event_types, event) {
+                 event_types = [].concat(event_types);
+                 var  i = event_types.length;
+                 while  (i--) {
+                     var  listener = filesaver[ "on"  + event_types[i]];
+                     if  ( typeof  listener ===  "function" ) {
+                         try  {
+                             listener.call(filesaver, event || filesaver);
+                         }  catch  (ex) {
+                             throw_outside(ex);
+                         }
+                     }
+                 }
+             }
+             , auto_bom =  function (blob) {
+                 // prepend BOM for UTF-8 XML and text/* types (including HTML)
+                 // note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+                 if  (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+                     return  new  Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+                 }
+                 return  blob;
+             }
+             , FileSaver =  function (blob, name, no_auto_bom) {
+                 if  (!no_auto_bom) {
+                     blob = auto_bom(blob);
+                 }
+                 // First try a.download, then web filesystem, then object URLs
+                 var
+                       filesaver =  this
+                     , type = blob.type
+                     , force = type === force_saveable_type
+                     , object_url
+                     , dispatch_all =  function () {
+                         dispatch(filesaver,  "writestart progress write writeend" .split( " " ));
+                     }
+                     // on any filesys errors revert to saving with object URLs
+                     , fs_error =  function () {
+                         if  ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+                             // Safari doesn't allow downloading of blob urls
+                             var  reader =  new  FileReader();
+                             reader.onloadend =  function () {
+                                 var  url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/,  'data:attachment/file;' );
+                                 var  popup = view.open(url,  '_blank' );
+                                 if (!popup) view.location.href = url;
+                                 url=undefined;  // release reference before dispatching
+                                 filesaver.readyState = filesaver.DONE;
+                                 dispatch_all();
+                             };
+                             reader.readAsDataURL(blob);
+                             filesaver.readyState = filesaver.INIT;
+                             return ;
+                         }
+                         // don't create more object URLs than needed
+                         if  (!object_url) {
+                             object_url = get_URL().createObjectURL(blob);
+                         }
+                         if  (force) {
+                             view.location.href = object_url;
+                         }  else  {
+                             var  opened = view.open(object_url,  "_blank" );
+                             if  (!opened) {
+                                 // Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+                                 view.location.href = object_url;
+                             }
+                         }
+                         filesaver.readyState = filesaver.DONE;
+                         dispatch_all();
+                         revoke(object_url);
+                     }
+                 ;
+                 filesaver.readyState = filesaver.INIT;
+     
+                 if  (can_use_save_link) {
+                     object_url = get_URL().createObjectURL(blob);
+                     setTimeout( function () {
+                         save_link.href = object_url;
+                         save_link.download = name;
+                         click(save_link);
+                         dispatch_all();
+                         revoke(object_url);
+                         filesaver.readyState = filesaver.DONE;
+                     });
+                     return ;
+                 }
+     
+                 fs_error();
+             }
+             , FS_proto = FileSaver.prototype
+             , saveAs =  function (blob, name, no_auto_bom) {
+                 return  new  FileSaver(blob, name || blob.name ||  "download" , no_auto_bom);
+             }
+         ;
+         // IE 10+ (native saveAs)
+         if  ( typeof  navigator !==  "undefined"  && navigator.msSaveOrOpenBlob) {
+             return  function (blob, name, no_auto_bom) {
+                 name = name || blob.name ||  "download" ;
+     
+                 if  (!no_auto_bom) {
+                     blob = auto_bom(blob);
+                 }
+                 return  navigator.msSaveOrOpenBlob(blob, name);
+             };
+         }
+     
+         FS_proto.abort =  function (){};
+         FS_proto.readyState = FS_proto.INIT = 0;
+         FS_proto.WRITING = 1;
+         FS_proto.DONE = 2;
+     
+         FS_proto.error =
+         FS_proto.onwritestart =
+         FS_proto.onprogress =
+         FS_proto.onwrite =
+         FS_proto.onabort =
+         FS_proto.onerror =
+         FS_proto.onwriteend =
+             null ;
+     
+         return  saveAs;
+    }(
+            typeof  self !==  "undefined"  && self
+         ||  typeof  window !==  "undefined"  && window
+         ||  this .content
+    ));
+    // `self` is undefined in Firefox for Android content script context
+    // while `this` is nsIContentFrameMessageManager
+    // with an attribute `content` that corresponds to the window
+     
+    if  ( typeof  module !==  "undefined"  && module.exports) {
+       module.exports.saveAs = saveAs;
+    }  else  if  (( typeof  define !==  "undefined"  && define !==  null ) && (define.amd !==  null )) {
+       define( "FileSaver.js" ,  function () {
+         return  saveAs;
+       });
+    }/* FileSaver.js
+      * A saveAs() FileSaver implementation.
+      * 1.3.2
+      * 2016-06-16 18:25:19
+      *
+      * By Eli Grey, http://eligrey.com
+      * License: MIT
+      *   See https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
+      */
+     
+    /*global self */
+    /*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+     
+    /*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+     
+    var  saveAs = saveAs || ( function (view) {
+         "use strict" ;
+         // IE <10 is explicitly unsupported
+         if  ( typeof  view ===  "undefined"  ||  typeof  navigator !==  "undefined"  && /MSIE [1-9]\./.test(navigator.userAgent)) {
+             return ;
+         }
+         var
+               doc = view.document
+               // only get URL when necessary in case Blob.js hasn't overridden it yet
+             , get_URL =  function () {
+                 return  view.URL || view.webkitURL || view;
+             }
+             , save_link = doc.createElementNS( "http://www.w3.org/1999/xhtml" ,  "a" )
+             , can_use_save_link =  "download"  in  save_link
+             , click =  function (node) {
+                 var  event =  new  MouseEvent( "click" );
+                 node.dispatchEvent(event);
+             }
+             , is_safari = /constructor/i.test(view.HTMLElement) || view.safari
+             , is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+             , throw_outside =  function (ex) {
+                 (view.setImmediate || view.setTimeout)( function () {
+                     throw  ex;
+                 }, 0);
+             }
+             , force_saveable_type =  "application/octet-stream"
+             // the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+             , arbitrary_revoke_timeout = 1000 * 40  // in ms
+             , revoke =  function (file) {
+                 var  revoker =  function () {
+                     if  ( typeof  file ===  "string" ) {  // file is an object URL
+                         get_URL().revokeObjectURL(file);
+                     }  else  {  // file is a File
+                         file.remove();
+                     }
+                 };
+                 setTimeout(revoker, arbitrary_revoke_timeout);
+             }
+             , dispatch =  function (filesaver, event_types, event) {
+                 event_types = [].concat(event_types);
+                 var  i = event_types.length;
+                 while  (i--) {
+                     var  listener = filesaver[ "on"  + event_types[i]];
+                     if  ( typeof  listener ===  "function" ) {
+                         try  {
+                             listener.call(filesaver, event || filesaver);
+                         }  catch  (ex) {
+                             throw_outside(ex);
+                         }
+                     }
+                 }
+             }
+             , auto_bom =  function (blob) {
+                 // prepend BOM for UTF-8 XML and text/* types (including HTML)
+                 // note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+                 if  (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+                     return  new  Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+                 }
+                 return  blob;
+             }
+             , FileSaver =  function (blob, name, no_auto_bom) {
+                 if  (!no_auto_bom) {
+                     blob = auto_bom(blob);
+                 }
+                 // First try a.download, then web filesystem, then object URLs
+                 var
+                       filesaver =  this
+                     , type = blob.type
+                     , force = type === force_saveable_type
+                     , object_url
+                     , dispatch_all =  function () {
+                         dispatch(filesaver,  "writestart progress write writeend" .split( " " ));
+                     }
+                     // on any filesys errors revert to saving with object URLs
+                     , fs_error =  function () {
+                         if  ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+                             // Safari doesn't allow downloading of blob urls
+                             var  reader =  new  FileReader();
+                             reader.onloadend =  function () {
+                                 var  url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/,  'data:attachment/file;' );
+                                 var  popup = view.open(url,  '_blank' );
+                                 if (!popup) view.location.href = url;
+                                 url=undefined;  // release reference before dispatching
+                                 filesaver.readyState = filesaver.DONE;
+                                 dispatch_all();
+                             };
+                             reader.readAsDataURL(blob);
+                             filesaver.readyState = filesaver.INIT;
+                             return ;
+                         }
+                         // don't create more object URLs than needed
+                         if  (!object_url) {
+                             object_url = get_URL().createObjectURL(blob);
+                         }
+                         if  (force) {
+                             view.location.href = object_url;
+                         }  else  {
+                             var  opened = view.open(object_url,  "_blank" );
+                             if  (!opened) {
+                                 // Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+                                 view.location.href = object_url;
+                             }
+                         }
+                         filesaver.readyState = filesaver.DONE;
+                         dispatch_all();
+                         revoke(object_url);
+                     }
+                 ;
+                 filesaver.readyState = filesaver.INIT;
+     
+                 if  (can_use_save_link) {
+                     object_url = get_URL().createObjectURL(blob);
+                     setTimeout( function () {
+                         save_link.href = object_url;
+                         save_link.download = name;
+                         click(save_link);
+                         dispatch_all();
+                         revoke(object_url);
+                         filesaver.readyState = filesaver.DONE;
+                     });
+                     return ;
+                 }
+     
+                 fs_error();
+             }
+             , FS_proto = FileSaver.prototype
+             , saveAs =  function (blob, name, no_auto_bom) {
+                 return  new  FileSaver(blob, name || blob.name ||  "download" , no_auto_bom);
+             }
+         ;
+         // IE 10+ (native saveAs)
+         if  ( typeof  navigator !==  "undefined"  && navigator.msSaveOrOpenBlob) {
+             return  function (blob, name, no_auto_bom) {
+                 name = name || blob.name ||  "download" ;
+     
+                 if  (!no_auto_bom) {
+                     blob = auto_bom(blob);
+                 }
+                 return  navigator.msSaveOrOpenBlob(blob, name);
+             };
+         }
+     
+         FS_proto.abort =  function (){};
+         FS_proto.readyState = FS_proto.INIT = 0;
+         FS_proto.WRITING = 1;
+         FS_proto.DONE = 2;
+     
+         FS_proto.error =
+         FS_proto.onwritestart =
+         FS_proto.onprogress =
+         FS_proto.onwrite =
+         FS_proto.onabort =
+         FS_proto.onerror =
+         FS_proto.onwriteend =
+             null ;
+     
+         return  saveAs;
+    }(
+            typeof  self !==  "undefined"  && self
+         ||  typeof  window !==  "undefined"  && window
+         ||  this .content
+    ));
+    // `self` is undefined in Firefox for Android content script context
+    // while `this` is nsIContentFrameMessageManager
+    // with an attribute `content` that corresponds to the window
+     
+    if  ( typeof  module !==  "undefined"  && module.exports) {
+       module.exports.saveAs = saveAs;
+    }  else  if  (( typeof  define !==  "undefined"  && define !==  null ) && (define.amd !==  null )) {
+       define( "FileSaver.js" ,  function () {
+         return  saveAs;
+       });
+    }
+	</script>
